@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torneo Del Porcodidio</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #000;
+  color: gold;
+  text-align:center;
+}
+
+h1 { color:red; }
+
+.screen { display:none; }
+.active { display:block; }
+
+button {
+  padding:15px;
+  margin:10px;
+  border:none;
+  border-radius:10px;
+  background:gold;
+  width:80%;
+}
+
+select {
+  padding:10px;
+  margin:5px;
+}
+.card {
+  border:1px solid gold;
+  margin:10px;
+  padding:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎰 Torneo Del Porcodidio</h1>
+
+<div id="home" class="screen active">
+<button onclick="go('players')">👥 Giocatori</button>
+<button onclick="go('game')">▶️ Nuovo Torneo</button>
+<button onclick="go('history')">📊 Storico</button>
+</div>
+
+<div id="players" class="screen">
+<input id="pname">
+<button onclick="addPlayer()">Aggiungi</button>
+<div id="plist"></div>
+<button onclick="go('home')">⬅️</button>
+</div>
+
+<div id="game" class="screen">
+<div id="games"></div>
+<button onclick="calculate()">Calcola</button>
+<div id="result"></div>
+<button onclick="save()">Salva</button>
+<button onclick="go('home')">⬅️</button>
+</div>
+
+<div id="history" class="screen">
+<div id="historyList"></div>
+<button onclick="go('home')">⬅️</button>
+</div>
+
+<script>
+let players=JSON.parse(localStorage.getItem("players")||"[]");
+
+function go(id){
+document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+
+if(id=="players") renderPlayers();
+if(id=="game") renderGames();
+if(id=="history") renderHistory();
+}
+
+function addPlayer(){
+let n=document.getElementById("pname").value;
+if(n){
+players.push(n);
+localStorage.setItem("players",JSON.stringify(players));
+renderPlayers();
+}
+}
+
+function renderPlayers(){
+let d=document.getElementById("plist");
+d.innerHTML="";
+players.forEach(p=>d.innerHTML+=p+"<br>");
+}
+
+function renderGames(){
+let d=document.getElementById("games");
+d.innerHTML="";
+
+let games=["UNO","31","Saltacavallo","Fr0cio"];
+
+games.forEach(g=>{
+d.innerHTML+="<div class='card'><b>"+g+"</b><br>";
+players.forEach(p=>{
+d.innerHTML+=p+" <select id='"+g+p+"'>"+options()+"</select><br>";
+});
+d.innerHTML+="</div>";
+});
+}
+
+function options(){
+let o="<option value='0'>-</option>";
+for(let i=1;i<=players.length;i++){
+o+="<option value='"+i+"'>"+i+"°</option>";
+}
+return o;
+}
+
+function calculate(){
+let scores={};
+players.forEach(p=>scores[p]=0);
+
+let games=["UNO","31","Saltacavallo","Fr0cio"];
+
+games.forEach(g=>{
+players.forEach(p=>{
+let pos=parseInt(document.getElementById(g+p).value)||0;
+if(pos>0) scores[p]+=pos;
+});
+});
+
+let arr=players.map(p=>({name:p,score:scores[p]}));
+arr.sort((a,b)=>b.score-a.score);
+
+let html="<h3>Classifica</h3>";
+arr.forEach((p,i)=>{
+html+=(i+1)+" "+p.name+" "+p.score+"<br>";
+});
+
+document.getElementById("result").innerHTML=html;
+window.last=arr;
+}
+
+function save(){
+let h=JSON.parse(localStorage.getItem("history")||"[]");
+h.push(window.last);
+localStorage.setItem("history",JSON.stringify(h));
+}
+
+function renderHistory(){
+let h=JSON.parse(localStorage.getItem("history")||"[]");
+let d=document.getElementById("historyList");
+d.innerHTML="";
+h.forEach((t,i)=>{
+d.innerHTML+="<div class='card'><b>Torneo "+(i+1)+"</b><br>";
+t.forEach(p=>{
+d.innerHTML+=p.name+" "+p.score+"<br>";
+});
+d.innerHTML+="</div>";
+});
+}
+</script>
+
+</body>
+</ht
